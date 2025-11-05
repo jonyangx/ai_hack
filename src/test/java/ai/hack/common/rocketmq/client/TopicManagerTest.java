@@ -1,7 +1,7 @@
-package ai.hack.rocketmq.client;
+package ai.hack.common.rocketmq.client;
 
-import ai.hack.rocketmq.broker.RocketMQBrokerContainer;
-import ai.hack.rocketmq.namesrv.RocketMQNameServerContainer;
+import ai.hack.common.rocketmq.broker.RocketMQBrokerContainer;
+import ai.hack.common.rocketmq.namesrv.RocketMQNameServerContainer;
 import org.apache.rocketmq.common.TopicConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,7 +22,7 @@ class TopicManagerTest {
     private static final Logger log = LoggerFactory.getLogger(TopicManagerTest.class);
 
     @TempDir
-    static File tempDir;
+    private static File tempDir;
 
     private static RocketMQNameServerContainer nameServer;
     private static RocketMQBrokerContainer broker;
@@ -30,16 +30,33 @@ class TopicManagerTest {
 
     @BeforeAll
     static void setUpAll() throws Exception {
-        // 启动 NameServer
+        // 启动 NameServer (使用 daemon 线程)
         nameServer = RocketMQNameServerContainer.builder()
                 .listenPort(19876)
                 .rocketmqHome(new File(tempDir, "namesrv").getAbsolutePath())
                 .build();
-        nameServer.start();
-        Thread.sleep(2000);
+        
+        Thread nameServerThread = new Thread(() -> {
+            try {
+                nameServer.start();
+                log.info("NameServer daemon thread started successfully");
+            } catch (Exception e) {
+                log.error("Failed to start NameServer in daemon thread", e);
+            }
+        }, "NameServer-Daemon");
+        nameServerThread.setDaemon(true);
+        nameServerThread.start();
+        
+        // 等待 NameServer 启动
+        Thread.sleep(3000);
+        
+        // 验证 NameServer 已启动
+        if (!nameServer.isRunning()) {
+            throw new RuntimeException("NameServer failed to start");
+        }
         log.info("Test NameServer started at {}", nameServer.getFullAddress());
 
-        // 启动 Broker
+        // 启动 Broker (使用 daemon 线程)
         broker = RocketMQBrokerContainer.builder()
                 .brokerName("test-broker")
                 .clusterName("TestCluster")
@@ -49,8 +66,25 @@ class TopicManagerTest {
                 .storePathRootDir(new File(tempDir, "broker").getAbsolutePath())
                 .autoCreateTopicEnable(false)
                 .build();
-        broker.start();
-        Thread.sleep(3000);
+        
+        Thread brokerThread = new Thread(() -> {
+            try {
+                broker.start();
+                log.info("Broker daemon thread started successfully");
+            } catch (Exception e) {
+                log.error("Failed to start Broker in daemon thread", e);
+            }
+        }, "Broker-Daemon");
+        brokerThread.setDaemon(true);
+        brokerThread.start();
+        
+        // 等待 Broker 启动并注册到 NameServer
+        Thread.sleep(6000);
+        
+        // 验证 Broker 已启动
+        if (!broker.isRunning()) {
+            throw new RuntimeException("Broker failed to start");
+        }
         log.info("Test Broker started at {}", broker.getBrokerAddress());
 
         // 创建 TopicManager
@@ -93,13 +127,13 @@ class TopicManagerTest {
         String topicName = "test-topic-default";
 
         // 创建 Topic
-        topicManager.createTopic(topicName);
+        topicManager.createTopic(topicName, 4, 4, "TestCluster");
 
         // 等待创建完成
         Thread.sleep(1000);
 
         // 验证 Topic 存在
-        assertTrue(topicManager.topicExists(topicName), "Topic should exist after creation");
+        assertTrue(topicManager.topicExists("TestCluster",topicName), "Topic should exist after creation");
 
         // 验证配置
         TopicConfig config = topicManager.getTopicConfig(topicName);
@@ -119,13 +153,13 @@ class TopicManagerTest {
         int writeQueues = 8;
 
         // 创建 Topic
-        topicManager.createTopic(topicName, readQueues, writeQueues);
+        topicManager.createTopic(topicName, readQueues, writeQueues, "TestCluster");
 
         // 等待创建完成
         Thread.sleep(1000);
 
         // 验证 Topic 存在
-        assertTrue(topicManager.topicExists(topicName), "Topic should exist after creation");
+        assertTrue(topicManager.topicExists("TestCluster",topicName), "Topic should exist after creation");
 
         // 验证配置
         TopicConfig config = topicManager.getTopicConfig(topicName);
@@ -145,15 +179,15 @@ class TopicManagerTest {
         String nonExistingTopic = "non-existing-topic";
 
         // 创建 Topic
-        topicManager.createTopic(existingTopic);
+        topicManager.createTopic(existingTopic, 4, 4, "TestCluster");
         Thread.sleep(1000);
 
         // 测试存在的 Topic
-        assertTrue(topicManager.topicExists(existingTopic),
+        assertTrue(topicManager.topicExists("TestCluster",existingTopic),
                 "Existing topic should return true");
 
         // 测试不存在的 Topic
-        assertFalse(topicManager.topicExists(nonExistingTopic),
+        assertFalse(topicManager.topicExists("TestCluster",nonExistingTopic),
                 "Non-existing topic should return false");
 
         log.info("Topic existence check passed");
@@ -163,9 +197,9 @@ class TopicManagerTest {
     @Order(5)
     void testListTopics() throws Exception {
         // 创建几个 Topic
-        topicManager.createTopic("list-test-1");
-        topicManager.createTopic("list-test-2");
-        topicManager.createTopic("list-test-3");
+        topicManager.createTopic("list-test-1", 4, 4, "TestCluster");
+        topicManager.createTopic("list-test-2", 4, 4, "TestCluster");
+        topicManager.createTopic("list-test-3", 4, 4, "TestCluster");
         Thread.sleep(1000);
 
         // 列出所有 Topic
@@ -189,18 +223,18 @@ class TopicManagerTest {
         String topicName = "test-topic-delete";
 
         // 创建 Topic
-        topicManager.createTopic(topicName);
+        topicManager.createTopic(topicName, 4, 4, "TestCluster");
         Thread.sleep(1000);
 
         // 验证创建成功
-        assertTrue(topicManager.topicExists(topicName), "Topic should exist before deletion");
+        assertTrue(topicManager.topicExists("TestCluster",topicName), "Topic should exist before deletion");
 
         // 删除 Topic
-        topicManager.deleteTopic(topicName);
+        topicManager.deleteTopic(topicName, "TestCluster");
         Thread.sleep(1000);
 
         // 验证删除成功
-        assertFalse(topicManager.topicExists(topicName), "Topic should not exist after deletion");
+        assertFalse(topicManager.topicExists("TestCluster",topicName), "Topic should not exist after deletion");
 
         log.info("Topic '{}' deleted successfully", topicName);
     }
@@ -213,7 +247,7 @@ class TopicManagerTest {
         int writeQueues = 6;
 
         // 创建 Topic
-        topicManager.createTopic(topicName, readQueues, writeQueues);
+        topicManager.createTopic(topicName, readQueues, writeQueues, "TestCluster");
         Thread.sleep(1000);
 
         // 获取配置
@@ -237,7 +271,7 @@ class TopicManagerTest {
 
         for (int i = 0; i < topicCount; i++) {
             String topicName = "multi-topic-" + i;
-            topicManager.createTopic(topicName, 2, 2);
+            topicManager.createTopic(topicName, 2, 2, "TestCluster");
         }
 
         Thread.sleep(2000);
@@ -245,7 +279,7 @@ class TopicManagerTest {
         // 验证所有 Topic 都创建成功
         for (int i = 0; i < topicCount; i++) {
             String topicName = "multi-topic-" + i;
-            assertTrue(topicManager.topicExists(topicName),
+            assertTrue(topicManager.topicExists("TestCluster",topicName),
                     "Topic " + topicName + " should exist");
         }
 
