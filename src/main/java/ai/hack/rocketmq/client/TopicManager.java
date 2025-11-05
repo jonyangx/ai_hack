@@ -1,12 +1,19 @@
 package ai.hack.rocketmq.client;
 
+import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.remoting.exception.RemotingConnectException;
+import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
+import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
+import org.apache.rocketmq.remoting.protocol.body.ClusterInfo;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+import org.apache.rocketmq.tools.admin.MQAdminExt;
 import org.apache.rocketmq.tools.command.CommandUtil;
 import org.apache.rocketmq.common.TopicConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -174,7 +181,7 @@ public class TopicManager {
             brokerAddrs = CommandUtil.fetchMasterAddrByClusterName(adminExt, clusterName);
         } else {
             // 否则获取所有 Broker 地址（Master 和 Slave）
-            brokerAddrs = CommandUtil.fetchMasterAndSlaveAddrByClusterName(adminExt, clusterName);
+            brokerAddrs = getAllBrokers(adminExt);
         }
 
         // 验证是否找到可用的 Broker
@@ -235,7 +242,7 @@ public class TopicManager {
             brokerAddrs = CommandUtil.fetchMasterAddrByClusterName(adminExt, clusterName);
         } else {
             // 否则获取所有 Broker 地址
-            brokerAddrs = CommandUtil.fetchMasterAndSlaveAddrByClusterName(adminExt, null);
+            brokerAddrs = getAllBrokers(adminExt);
         }
 
         // 检查是否找到 Broker
@@ -284,7 +291,7 @@ public class TopicManager {
             ensureStarted();
 
             // 步骤2: 获取所有 Broker 地址
-            Set<String> brokerAddrs = CommandUtil.fetchMasterAndSlaveAddrByClusterName(adminExt, null);
+            Set<String> brokerAddrs = getAllBrokers(adminExt);
 
             // 步骤3: 如果有 Broker，查询第一个 Broker 上的 Topic 配置
             if (brokerAddrs != null && !brokerAddrs.isEmpty()) {
@@ -321,7 +328,7 @@ public class TopicManager {
         ensureStarted();
 
         // 步骤2: 获取所有 Broker 地址
-        Set<String> brokerAddrs = CommandUtil.fetchMasterAndSlaveAddrByClusterName(adminExt, null);
+        Set<String> brokerAddrs = getAllBrokers(adminExt);
 
         // 步骤3: 从第一个 Broker 获取配置
         if (brokerAddrs != null && !brokerAddrs.isEmpty()) {
@@ -383,5 +390,24 @@ public class TopicManager {
      */
     public String getNamesrvAddr() {
         return namesrvAddr;
+    }
+
+    /**
+     * 获取所有 Broker 地址
+     * @param adminExt
+     * @return
+     * @throws RemotingSendRequestException
+     * @throws RemotingConnectException
+     * @throws RemotingTimeoutException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
+    private Set<String> getAllBrokers(final MQAdminExt adminExt) throws RemotingSendRequestException, RemotingConnectException, RemotingTimeoutException, MQBrokerException, InterruptedException {
+        Set<String> brokerAddrs = new HashSet<>();
+        ClusterInfo clusterInfoSerializeWrapper = adminExt.examineBrokerClusterInfo();
+        for (String clusterName1 : clusterInfoSerializeWrapper.getClusterAddrTable().keySet()) {
+            brokerAddrs.addAll(CommandUtil.fetchMasterAndSlaveAddrByClusterName(adminExt, clusterName1));
+        }
+        return brokerAddrs;
     }
 }

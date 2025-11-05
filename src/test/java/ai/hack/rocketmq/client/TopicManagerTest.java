@@ -50,7 +50,7 @@ class TopicManagerTest {
                 .autoCreateTopicEnable(false)
                 .build();
         broker.start();
-        Thread.sleep(3000);
+        Thread.sleep(13000);
         log.info("Test Broker started at {}", broker.getBrokerAddress());
 
         // 创建 TopicManager
