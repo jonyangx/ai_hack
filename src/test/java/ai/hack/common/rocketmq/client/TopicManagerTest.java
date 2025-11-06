@@ -36,7 +36,6 @@ class TopicManagerTest {
                 .rocketmqHome(new File(tempDir, "namesrv").getAbsolutePath())
                 .build();
         nameServer.start();
-        Thread.sleep(3000);
         log.info("Test NameServer started at {}", nameServer.getFullAddress());
 
         // 启动 Broker
