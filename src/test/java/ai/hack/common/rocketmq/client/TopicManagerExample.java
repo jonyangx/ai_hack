@@ -75,10 +75,10 @@ public class TopicManagerExample {
 
             // 5. 检查 Topic 是否存在
             log.info("Step 5: Checking if topics exist...");
-            log.info("Topic '{}' exists: {}", topic1, topicManager.topicExists("DefaultCluster",topic1));
-            log.info("Topic '{}' exists: {}", topic2, topicManager.topicExists("DefaultCluster",topic2));
+            log.info("Topic '{}' exists: {}", topic1, topicManager.topicExists(topic1));
+            log.info("Topic '{}' exists: {}", topic2, topicManager.topicExists(topic2));
             log.info("Topic '{}' exists: {}", "non-existent-topic",
-                    topicManager.topicExists("DefaultCluster","non-existent-topic"));
+                    topicManager.topicExists("non-existent-topic"));
 
             // 6. 获取 Topic 配置
             log.info("Step 6: Getting topic configurations...");
@@ -108,7 +108,7 @@ public class TopicManagerExample {
             Thread.sleep(1000);
 
             // 验证删除
-            log.info("Topic '{}' exists after deletion: {}", topic3, topicManager.topicExists("DefaultCluster",topic3));
+            log.info("Topic '{}' exists after deletion: {}", topic3, topicManager.topicExists(topic3));
 
             log.info("=".repeat(60));
             log.info("Topic management example completed successfully!");
