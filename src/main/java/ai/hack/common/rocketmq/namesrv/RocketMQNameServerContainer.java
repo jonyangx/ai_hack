@@ -20,7 +20,6 @@ public class RocketMQNameServerContainer {
     private final NettyServerConfig nettyServerConfig;
     private NamesrvController namesrvController;
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final Object LOCK = new Object();
 
     private RocketMQNameServerContainer(Builder builder) {
         this.namesrvConfig = new NamesrvConfig();
@@ -44,21 +43,19 @@ public class RocketMQNameServerContainer {
                 builder.listenPort, builder.rocketmqHome);
     }
 
-    public void start() throws Exception {
+    public synchronized void start() throws Exception {
         if (started.compareAndSet(false, true)) {
             log.info("Starting RocketMQ NameServer...");
 
-            synchronized (LOCK) {
-                this.namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
+            this.namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
 
-                boolean initResult = namesrvController.initialize();
-                if (!initResult) {
-                    namesrvController.shutdown();
-                    throw new RuntimeException("Failed to initialize RocketMQ NameServer");
-                }
-
-                namesrvController.start();
+            boolean initResult = namesrvController.initialize();
+            if (!initResult) {
+                namesrvController.shutdown();
+                throw new RuntimeException("Failed to initialize RocketMQ NameServer");
             }
+
+            namesrvController.start();
 
             log.info("RocketMQ NameServer started successfully on port: {}",
                     nettyServerConfig.getListenPort());
@@ -69,7 +66,7 @@ public class RocketMQNameServerContainer {
         }
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
         if (started.compareAndSet(true, false)) {
             log.info("Shutting down RocketMQ NameServer...");
             if (namesrvController != null) {
