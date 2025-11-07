@@ -41,7 +41,7 @@ class RocketMQBrokerContainerTest {
         log.info("Test NameServer started at {}", nameServerContainer.getFullAddress());
     }
 
-    @BeforeAll
+    @AfterAll
     static void tearDown() {
         // 每个测试后关闭 NameServer
         if (nameServerContainer != null && nameServerContainer.isRunning()) {

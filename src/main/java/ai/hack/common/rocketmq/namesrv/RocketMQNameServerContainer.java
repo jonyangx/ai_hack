@@ -46,20 +46,19 @@ public class RocketMQNameServerContainer {
 
     public void start() throws Exception {
 
+
         synchronized (LOCK) {
             if (started.compareAndSet(false, true)) {
                 log.info("Starting RocketMQ NameServer...");
-                    this.namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
+                this.namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
 
-                    boolean initResult = namesrvController.initialize();
-                    if (!initResult) {
-                        namesrvController.shutdown();
-                        throw new RuntimeException("Failed to initialize RocketMQ NameServer");
-                    }
+                if (!namesrvController.initialize()) {
+                    namesrvController.shutdown();
+                    throw new RuntimeException("Failed to initialize RocketMQ NameServer");
+                }
 
-                    namesrvController.start();
+                namesrvController.start();
                 log.info("=======================================================");
-
                 log.info("RocketMQ NameServer started successfully on port: {}",
                         nettyServerConfig.getListenPort());
                 log.info("NameServer address: {}:{}",
