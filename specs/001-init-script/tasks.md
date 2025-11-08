@@ -23,9 +23,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create scripts directory structure per implementation plan
-- [ ] T002 [P] Set up documentation directory structure in specs/001-init-script/
-- [ ] T003 [P] Configure version control ignores for generated files (.env)
+- [x] T001 Create scripts directory structure per implementation plan
+- [x] T002 [P] Set up documentation directory structure in specs/001-init-script/
+- [x] T003 [P] Configure version control ignores for generated files (.env)
 
 ---
 
