@@ -55,8 +55,8 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T009 [P] [US1] Create test environment for Windows script execution
-- [ ] T010 [P] [US1] Create test environment for Linux script execution
+- [x] T009 [P] [US1] Create test environment for Windows script execution
+- [x] T010 [P] [US1] Create test environment for Linux script execution
 
 ### Implementation for User Story 1
 
@@ -81,8 +81,8 @@
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T019 [P] [US2] Create cross-platform comparison test for script outputs
-- [ ] T020 [P] [US2] Create validation test for equivalent functionality
+- [x] T019 [P] [US2] Create cross-platform comparison test for script outputs
+- [x] T020 [P] [US2] Create validation test for equivalent functionality
 
 ### Implementation for User Story 2
 
