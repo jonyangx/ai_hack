@@ -104,9 +104,9 @@
  - [x] T027 [P] Create README.md with usage instructions in scripts/
 - [x] T028 Add documentation references to quickstart.md
 - [x] T029 [P] Update contracts/api-contracts.md with final interfaces
-- [ ] T030 Run quickstart.md validation on both platforms
+- [x] T030 Run quickstart.md validation on both platforms
 - [x] T031 [P] Add example usage to documentation
-- [ ] T032 Security review of script execution permissions
+- [x] T032 Security review of script execution permissions
 
 ---
 
