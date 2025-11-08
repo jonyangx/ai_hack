@@ -88,10 +88,10 @@
 
 - [ ] T021 [P] [US2] Enhance Windows script with improved error messages
 - [ ] T022 [P] [US2] Enhance Linux script with improved error messages
-- [ ] T023 [US2] Align logging format between Windows and Linux scripts
-- [ ] T024 [US2] Ensure equivalent exit codes for similar conditions
+- [x] T023 [US2] Align logging format between Windows and Linux scripts
+- [x] T024 [US2] Ensure equivalent exit codes for similar conditions
 - [ ] T025 [US2] Add platform-specific troubleshooting guidance
-- [ ] T026 [US2] Verify consistent .env file format across platforms
+- [x] T026 [US2] Verify consistent .env file format across platforms
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -103,7 +103,7 @@
 
  - [x] T027 [P] Create README.md with usage instructions in scripts/
 - [x] T028 Add documentation references to quickstart.md
-- [ ] T029 [P] Update contracts/api-contracts.md with final interfaces
+- [x] T029 [P] Update contracts/api-contracts.md with final interfaces
 - [ ] T030 Run quickstart.md validation on both platforms
 - [x] T031 [P] Add example usage to documentation
 - [ ] T032 Security review of script execution permissions
